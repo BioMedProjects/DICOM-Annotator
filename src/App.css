@@ -49,12 +49,15 @@
   background-color: whitesmoke;
   justify-content: center;
   align-items: center;
-  min-height: 100vh;
+  /* min-height: 100vh; */
   text-align: center;
 }
 canvas {
   border: 2px solid black;
   background-color: whitesmoke;
-  width:480px;
-  height: 640px;
+  /* width: 256px;
+  height: 256px; */
+}
+button {
+  margin: 0.1rem;
 }
