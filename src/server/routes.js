@@ -27,25 +27,30 @@ var upload = multer({
 });
 
 // User model
-let User = require('./models/User');
+let Dicom = require('./models/Dicom');
 
-router.post('/user-profile', upload.single('profileImg'), (req, res, next) => {
+router.post('/post-dicom', upload.single('dicomImg'), (req, res, next) => {
     const url = req.protocol + '://' + req.get('host')
-    const user = new User({
+    const dicom = new Dicom({
         _id: new mongoose.Types.ObjectId(),
         name: req.body.name,
-        profileImg: url + '/uploads/' + req.file.filename
+        isLabeled: req.body.isLabeled,
+        label: req.body.label,
+        dicomImg: req.body.dicomImg
     });
-    user.save().then(result => {
+    dicom.save().then(result => {
         res.status(201).json({
-            message: "User registered successfully!",
-            userCreated: {
+            message: "Dicom saved correctly!",
+            dicomCreated: {
                 _id: result._id,
-                profileImg: result.profileImg
+                isLabeled: result.isLabeled,
+                label: result.label,
+                dicomImg: result.dicomImg
             }
         })
     }).catch(err => {
-        console.log(err),
+        // eslint-disable-next-line no-unused-expressions
+        console.log(err)
             res.status(500).json({
                 error: err
             });
@@ -53,10 +58,10 @@ router.post('/user-profile', upload.single('profileImg'), (req, res, next) => {
 })
 
 router.get("/", (req, res, next) => {
-    User.find().then(data => {
+    Dicom.find().then(data => {
         res.status(200).json({
-            message: "User list retrieved successfully!",
-            users: data
+            message: "Dicom retrived succesfully",
+            dicoms: data
         });
     });
 });

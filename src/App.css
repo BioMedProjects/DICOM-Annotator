@@ -1,3 +1,7 @@
+body {
+  padding-left: 01rem;
+  padding-top: 0.1rem;
+}
 .App {
   text-align: center;
 }
@@ -60,4 +64,13 @@ canvas {
 }
 button {
   margin: 0.1rem;
+  padding: 0.1rem;
+}
+.inputDescriber{
+  width: 30%;
+  padding-bottom: 01rem;
+}
+.buttonDiv {
+  float:left;
+  padding: 0.1rem;
 }
