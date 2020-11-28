@@ -2,8 +2,8 @@ import React, {useState, useMemo, useEffect} from 'react';
 import axios from 'axios';
 import './App.css';
 import '../node_modules/bootstrap/dist/css/bootstrap.min.css';
-import Canvas from './components/Canvas.js'
-import { ImgContext, TrueContext  } from './components/ImgContext'
+import Canvas from './components/Canvas.js' 
+import { ImgContext, TrueContext, NameContex  } from './components/ImgContext'
 
 const fetchData = () => {
   return axios.get('http://localhost:4000/api/')
@@ -28,9 +28,11 @@ const postData = (value) => {
 function App() {
   const [value, setValue] = useState('');
   const [image, setImage] = useState(false);
+  const [nameField, setName] = useState('');
   const providerValue = useMemo(() => ({value,setValue}), [value, setValue]);
-  const providerValue2 = useMemo(() => ({image,setImage}), [image,setImage]);
-
+  const providerValueImage = useMemo(() => ({image,setImage}), [image,setImage]);
+  const providerValueName = useMemo(() => ({nameField, setName}), [nameField, setName]);
+  const [ visible, setVisible ] = useState(false);
   // useEffect(() => {
   //   fetchData().then(data =>{
   //     console.log(data)
@@ -59,14 +61,18 @@ function App() {
   
   return (
     <div>
+      <div>
+     </div>
       <h1>DICOM Annotation APP</h1>
       <br></br>
-      <TrueContext.Provider value={providerValue2}>
-      <ImgContext.Provider value={providerValue}>
+      <NameContex.Provider value = {providerValueName}>
+       <TrueContext.Provider value={providerValueImage}>
+         <ImgContext.Provider value={providerValue}>
           <Canvas/>
-        <br></br>
-      </ImgContext.Provider>
-      </TrueContext.Provider>
+          <br></br>
+         </ImgContext.Provider>
+       </TrueContext.Provider>
+      </NameContex.Provider>
     </div>
   );
 }
