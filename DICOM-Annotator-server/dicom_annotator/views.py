@@ -43,3 +43,12 @@ def get_image(request, file):
         w = png.Writer(shape[1], shape[0], greyscale=True)
         w.write(png_file, image_2d_scaled)
     return Response({"convertion successfull": file})
+
+
+@api_view(['PUT'])
+def update_dicom(request, file):
+    if request.method == 'PUT':
+        serializer = DicomSerializer()
+        serializer.update(file=file, validated_data=request.data)
+        #serializer.create(validated_data=request.data)
+    return Response({"updated successfull": file})

@@ -72,7 +72,13 @@ export default function Canvas(props) {
   const showImage = () => {
     const image = new Image();
     // image.src = value;
-    image.src = 'http://localhost:4000/uploads/image-00000.jpg'
+    fetch("http://127.0.0.1:8000/dicom_annotator/list_dicoms/")
+            .then( data => data.json())
+            .then( data => {
+                console.log(data)
+            })
+
+    image.src = 'http://127.0.0.1:8000/media/converted_to_png/image-00000_CT.png'
     image.setAttribute('crossorigin', 'anonymous');
     image.onload = function(){
       contextRef.current.drawImage(image, 0, 0, 512, 512)
@@ -94,6 +100,40 @@ export default function Canvas(props) {
     clear()
   }
 
+
+  let getCookie = (name) => {
+    var cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        var cookies = document.cookie.split(';');
+        for (var i = 0; i < cookies.length; i++) {
+            var cookie = cookies[i].trim();
+            // Does this cookie string begin with the name we want?
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+  }
+  
+  function updateDicom(label, isLabeled, picture) {
+    let data = {
+      label: label,
+      isLabeled: isLabeled,
+      picture: picture
+    }
+    fetch('http://127.0.0.1:8000/dicom_annotator/update_dicom/', {
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/json',
+              'X-CSRFToken': getCookie('csrftoken'),
+          },
+          body: data
+      })
+    //console.log(label, isLabeled, picture);
+  }
+
   return (
     <div>
       <button type="button" className="btn btn-primary" onClick={showImage} >Start</button>
@@ -108,13 +148,13 @@ export default function Canvas(props) {
       <hr></hr>
         <div className="inputDescriber">
           <label>What part of the body did you label?</label>
-          <input class="form-control" id="inputDescriber" placeholder="Arm, leg etc." type="text" value={nameField} onInput= {e => setName(e.target.value)}/>
+          <input className="form-control" id="inputDescriber" placeholder="Arm, leg etc." type="text" value={nameField} onInput= {e => setName(e.target.value)}/>
         </div>
         <div className="buttonDiv">
           <button type="button" className="btn btn-primary" onClick={clear}>Clear</button>
         </div>
         <div className="buttonDiv">
-          <button type="sumbit" className="btn btn-primary" onClick={save}>Next</button>
+          <button type="sumbit" className="btn btn-primary" onClick={updateDicom}>Next</button>
         </div>
     </div>
   );

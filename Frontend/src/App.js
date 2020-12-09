@@ -25,6 +25,7 @@ const postData = (value) => {
     console.log(res)
   })
 }
+
 function App() {
   const [value, setValue] = useState('');
   const [image, setImage] = useState(false);
