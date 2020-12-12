@@ -136,25 +136,6 @@ export default function Canvas(props) {
     // np.: http://127.0.0.1:8000/dicom_annotator/update_dicom/glowa.dcm -> podajemy nazwe pliku, label i is_labeled=true
   }
 
-
-  function download() {
-    //var c = document.getElementById("canvas");
-    //console.log(c)
-    //var d = c.toDataURL("image/png");
-    //console.log(d)
-    //var w = window.open('about:blank', 'image from canvas');
-    //console.log(w)
-    //w.document.write("<img src='" + d + "' alt='from canvas'/>");
-
-    var download = document.getElementById("download")
-    console.log(download)
-    var image = document.getElementById("canvas").toDataURL("image/png")
-                    .replace("image/png", "image/octet-stream");
-    console.log(image)
-    download.setAttribute("href", image);
-
-  }
-
   return (
     <div>
       <button type="button" className="btn btn-primary" onClick={showImage} >Start</button>
@@ -177,9 +158,6 @@ export default function Canvas(props) {
         </div>
         <div className="buttonDiv">
           <button type="sumbit" className="btn btn-primary" onClick={ () => { updateImage('image-00000_CT.png') } }>Next</button>
-        </div>
-        <div className="buttonDiv">
-          <a id="download" download="image.png"><button type="submit" onClick={download}>Download</button></a>
         </div>
     </div>
   );
