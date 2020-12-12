@@ -1,6 +1,7 @@
 from django.shortcuts import render
 import numpy as np
 import pydicom
+import base64
 import png
 import os
 
@@ -50,5 +51,17 @@ def update_dicom(request, file):
     if request.method == 'PUT':
         serializer = DicomSerializer()
         serializer.update(file=file, validated_data=request.data)
-        #serializer.create(validated_data=request.data)
-    return Response({"updated successfull": file})
+
+    print(request.data)
+    return Response({"update successfull": file})
+
+
+@api_view(['POST'])
+def save_labeled_image(request, file):
+    if request.method == 'POST':
+        print(file)
+        with open(f"media/labeled/{file}", "wb") as labeled_file:
+            b64_string = str.encode(request.data.split('base64,')[1])
+            labeled_file.write(base64.decodebytes(b64_string))
+
+    return Response({"labeling successfull": file})

@@ -9,7 +9,7 @@ class DicomSerializer(serializers.ModelSerializer):
         fields = [
             'label',
             'is_labeled',
-            'picture'
+            'picture',
         ]
 
     def create(self, validated_data):
@@ -25,20 +25,17 @@ class DicomSerializer(serializers.ModelSerializer):
         data = [{
             "label": obj.label,
             "is_labeled": obj.is_labeled,
-            "picture": obj.picture.url
+            "picture": obj.picture.url,
         } for obj in Dicom.objects.all()]
         return data
 
     def update(self, file, validated_data):
-        print(file)
-        obj_to_update = Dicom.objects.get(picture=file)
+        filepath = "uploads/" + file
+        obj_to_update = Dicom.objects.get(picture=filepath)
 
-        print(obj_to_update)
+        obj_to_update.label = validated_data['label']
+        obj_to_update.is_labeled = True
+        obj_to_update.picture = filepath
 
-        obj_to_update = Dicom(
-            label=validated_data['label'],
-            is_labeled=validated_data['is_labeled'],
-            picture=file
-        )
         obj_to_update.save()
         return validated_data

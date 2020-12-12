@@ -1,6 +1,6 @@
 import React, { useRef, useEffect, useState, useContext } from 'react';
 import { ImgContext, NameContex, TrueContext } from './ImgContext';
-import axios from 'axios';
+//import axios from 'axios';
 
 // const fetchData = () => {
 //   return axios.get('http://localhost:4000/api/')
@@ -24,8 +24,8 @@ import axios from 'axios';
 // }
 export default function Canvas(props) {
 
-  const { value, setValue } = useContext(ImgContext);
-  const { image, setImage } = useContext(TrueContext);
+  const { value, /*setValue*/ } = useContext(ImgContext);
+  const { /*image,*/ /*setImage*/ } = useContext(TrueContext);
   const { nameField, setName } = useContext(NameContex);
   const canvasRef = useRef(null)
   const contextRef = useRef(null)
@@ -45,7 +45,7 @@ export default function Canvas(props) {
   }, [])
 
   useEffect(() => {
-    // console.log(value, "TO JEST VALUE")
+     //console.log(value, "TO JEST VALUE")
     showImage();
   }, [value])
   const startDrawing = ({ nativeEvent }) => {
@@ -77,8 +77,8 @@ export default function Canvas(props) {
             .then( data => {
                 console.log(data)
             })
-
-    image.src = 'http://127.0.0.1:8000/media/converted_to_png/image-00000_CT.png'
+    // tworzenie pliku png, np: http://127.0.0.1:8000/dicom_annotator/get_image/image-00000_CT.png
+    image.src = `http://127.0.0.1:8000/media/converted_to_png/image-00000_CT.png`
     image.setAttribute('crossorigin', 'anonymous');
     image.onload = function(){
       contextRef.current.drawImage(image, 0, 0, 512, 512)
@@ -90,6 +90,7 @@ export default function Canvas(props) {
     showImage()
   }
 
+  /*
   const save = () => {
     let dataURI = canvasRef.current.toDataURL();
     // console.log(dataURI);
@@ -98,7 +99,7 @@ export default function Canvas(props) {
     // postData(value)
     setImage(true)
     clear()
-  }
+  }*/
 
 
   let getCookie = (name) => {
@@ -117,21 +118,41 @@ export default function Canvas(props) {
     return cookieValue;
   }
   
-  function updateDicom(label, isLabeled, picture) {
-    let data = {
-      label: label,
-      isLabeled: isLabeled,
-      picture: picture
-    }
-    fetch('http://127.0.0.1:8000/dicom_annotator/update_dicom/', {
-          method: 'POST',
-          headers: {
-              'Content-Type': 'application/json',
-              'X-CSRFToken': getCookie('csrftoken'),
-          },
-          body: data
-      })
-    //console.log(label, isLabeled, picture);
+
+  function updateImage (imageName) {
+    let base64String = document.getElementById("canvas").toDataURL("image/png")
+                        .replace("image/png", "image/octet-stream");
+
+    fetch('http://localhost:8000/dicom_annotator/save_labeled_image/' + imageName, {
+      method: 'POST',
+      headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': getCookie('csrftoken'),
+      },
+      body: JSON.stringify(base64String)
+    })
+
+    //tutaj tez mozna zrobic update labela i is_labeled dicoma w bazie: method: 'PUT'
+    // np.: http://127.0.0.1:8000/dicom_annotator/update_dicom/glowa.dcm -> podajemy nazwe pliku, label i is_labeled=true
+  }
+
+
+  function download() {
+    //var c = document.getElementById("canvas");
+    //console.log(c)
+    //var d = c.toDataURL("image/png");
+    //console.log(d)
+    //var w = window.open('about:blank', 'image from canvas');
+    //console.log(w)
+    //w.document.write("<img src='" + d + "' alt='from canvas'/>");
+
+    var download = document.getElementById("download")
+    console.log(download)
+    var image = document.getElementById("canvas").toDataURL("image/png")
+                    .replace("image/png", "image/octet-stream");
+    console.log(image)
+    download.setAttribute("href", image);
+
   }
 
   return (
@@ -144,6 +165,7 @@ export default function Canvas(props) {
         onMouseUp={finishDrawing}
         onMouseMove={draw}
         ref={canvasRef}
+        id="canvas"
       />
       <hr></hr>
         <div className="inputDescriber">
@@ -154,7 +176,10 @@ export default function Canvas(props) {
           <button type="button" className="btn btn-primary" onClick={clear}>Clear</button>
         </div>
         <div className="buttonDiv">
-          <button type="sumbit" className="btn btn-primary" onClick={updateDicom}>Next</button>
+          <button type="sumbit" className="btn btn-primary" onClick={ () => { updateImage('image-00000_CT.png') } }>Next</button>
+        </div>
+        <div className="buttonDiv">
+          <a id="download" download="image.png"><button type="submit" onClick={download}>Download</button></a>
         </div>
     </div>
   );

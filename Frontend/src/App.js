@@ -33,7 +33,7 @@ function App() {
   const providerValue = useMemo(() => ({value,setValue}), [value, setValue]);
   const providerValueImage = useMemo(() => ({image,setImage}), [image,setImage]);
   const providerValueName = useMemo(() => ({nameField, setName}), [nameField, setName]);
-  const [ visible, setVisible ] = useState(false);
+  //const [ visible, setVisible ] = useState(false);
   // useEffect(() => {
   //   fetchData().then(data =>{
   //     console.log(data)
