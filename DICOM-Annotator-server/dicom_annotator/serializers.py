@@ -34,7 +34,7 @@ class DicomSerializer(serializers.ModelSerializer):
         obj_to_update = Dicom.objects.get(picture=filepath)
 
         obj_to_update.label = validated_data['label']
-        obj_to_update.is_labeled = False
+        obj_to_update.is_labeled = True
         obj_to_update.picture = filepath
 
         obj_to_update.save()
