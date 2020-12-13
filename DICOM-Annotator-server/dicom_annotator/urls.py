@@ -5,8 +5,8 @@ urlpatterns = [
     path('save_dicom/', save_dicom),
     path('list_dicoms/', list_dicoms),
     path('update_dicom/<str:file>', update_dicom),
-
-    path('get_image/<str:file>', get_image),
+    ## Changed path to file ( client only has relative path not name of file )
+    path('get_image/media/uploads/<str:file>', get_image),
 
     path('save_labeled_image/<str:file>', save_labeled_image),
 ]

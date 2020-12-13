@@ -1,35 +1,47 @@
 import React, { useRef, useEffect, useState, useContext } from 'react';
-import { ImgContext, NameContex, TrueContext } from './ImgContext';
-//import axios from 'axios';
+import { ImgContext, DicomContext } from './ImgContext';
+import axios from 'axios';
 
-// const fetchData = () => {
-//   return axios.get('http://localhost:4000/api/')
-//   .then(( {data}) => {
-//     console.log(data);
-//     return data;
-//   })
-//   .catch(err => {
-//     console.error(err);
-//   });
-// }
-// const postData = (value) => {
-//   const formData = new FormData()
-//   formData.append('isLabeled', true)
-//   formData.append('label', "String")
-//   formData.append('dicomImg', value)
-//   axios.post('http://localhost:4000/api/post-dicom', formData, {
-//   }).then(res => {
-//     console.log(res)
-//   })
-// }
+
+const fetchDicomList = () => {
+  let unlabeledImages = [];
+  return axios.get('http://127.0.0.1:8000/dicom_annotator/list_dicoms')
+  .then(( {data}) => {
+    for (let record in data) {
+      if(! data[record].is_labeled){
+        unlabeledImages.push(data[record]);
+      }
+    }
+    return (unlabeledImages);
+  })
+  .catch(err => {
+    console.error(err);
+  });
+}
+
 export default function Canvas(props) {
 
-  const { value, /*setValue*/ } = useContext(ImgContext);
-  const { /*image,*/ /*setImage*/ } = useContext(TrueContext);
-  const { nameField, setName } = useContext(NameContex);
+  
+  const [isDisabled, setDisabled] = useState(false);
+  const { value, setValue } = useContext(ImgContext);
+  const { dicom, setDicom } = useContext(DicomContext);
   const canvasRef = useRef(null)
   const contextRef = useRef(null)
   const [isDrawing, setIsDrawing] = useState(false)
+  const [label, setLabel] = useState('')
+
+  const dicomToPng = async(url) => {
+    return await axios.get('http://127.0.0.1:8000/dicom_annotator/get_image' + url)
+    .then(( {data}) => {
+      // console.log(Object.values(data.[0].[0]));
+      setDicom(data.dicom)
+      setValue(data.png)
+      console.log(data)
+    })
+    .catch(err => {
+      console.error(err);
+    });
+  }
   useEffect(() => {
     const canvas = canvasRef.current;
     canvas.width = 512 * 2;//window.innerWidth * 2;
@@ -45,9 +57,21 @@ export default function Canvas(props) {
   }, [])
 
   useEffect(() => {
-     //console.log(value, "TO JEST VALUE")
-    showImage();
+    fetchDicomList().then(data => {
+      if(data.length == 1) {
+        setValue('stop.png')
+        setDisabled(true);
+      }
+      console.log(data[0].picture)
+      dicomToPng(data[0].picture)
+    })
+  }, [])
+  
+  useEffect(() => {
+      console.log(value)
+      showImage()
   }, [value])
+
   const startDrawing = ({ nativeEvent }) => {
     const { offsetX, offsetY } = nativeEvent;
     contextRef.current.beginPath()
@@ -72,13 +96,10 @@ export default function Canvas(props) {
   const showImage = () => {
     const image = new Image();
     // image.src = value;
-    fetch("http://127.0.0.1:8000/dicom_annotator/list_dicoms/")
-            .then( data => data.json())
-            .then( data => {
-                console.log(data)
-            })
+    console.log(value)
     // tworzenie pliku png, np: http://127.0.0.1:8000/dicom_annotator/get_image/image-00000_CT.png
-    image.src = `http://127.0.0.1:8000/media/converted_to_png/image-00000_CT.png`
+    image.src = `http://127.0.0.1:8000/media/converted_to_png/` + value;
+    // image.src
     image.setAttribute('crossorigin', 'anonymous');
     image.onload = function(){
       contextRef.current.drawImage(image, 0, 0, 512, 512)
@@ -89,17 +110,6 @@ export default function Canvas(props) {
     contextRef.current.clearRect(0, 0, 512, 512);
     showImage()
   }
-
-  /*
-  const save = () => {
-    let dataURI = canvasRef.current.toDataURL();
-    // console.log(dataURI);
-    setValue(dataURI);
-    // saveApi();
-    // postData(value)
-    setImage(true)
-    clear()
-  }*/
 
 
   let getCookie = (name) => {
@@ -118,12 +128,17 @@ export default function Canvas(props) {
     return cookieValue;
   }
   
+  const nextBtn = () => {
+    console.log(value)
+    console.log(dicom)
+    updateImage(value)
+  }
 
-  function updateImage (imageName) {
+  const updateImage = async() => {
     let base64String = document.getElementById("canvas").toDataURL("image/png")
                         .replace("image/png", "image/octet-stream");
 
-    fetch('http://localhost:8000/dicom_annotator/save_labeled_image/' + imageName, {
+    fetch('http://localhost:8000/dicom_annotator/save_labeled_image/' + value, {
       method: 'POST',
       headers: {
           'Content-Type': 'application/json',
@@ -134,11 +149,12 @@ export default function Canvas(props) {
 
     //tutaj tez mozna zrobic update labela i is_labeled dicoma w bazie: method: 'PUT'
     // np.: http://127.0.0.1:8000/dicom_annotator/update_dicom/glowa.dcm -> podajemy nazwe pliku, label i is_labeled=true
+    await axios.put('http://127.0.0.1:8000/dicom_annotator/update_dicom/' + dicom , { label: {label}, is_labeled: 'true' });
+    // await axios.put('http://127.0.0.1:8000/dicom_annotator/update_dicom/breast.dcm', { label: 'breast', is_labeled: 'false' });
   }
 
   return (
     <div>
-      <button type="button" className="btn btn-primary" onClick={showImage} >Start</button>
       <br></br>
       <br></br>
       <canvas
@@ -149,16 +165,18 @@ export default function Canvas(props) {
         id="canvas"
       />
       <hr></hr>
-        <div className="inputDescriber">
+      <form>
+      <div className="inputDescriber">
           <label>What part of the body did you label?</label>
-          <input className="form-control" id="inputDescriber" placeholder="Arm, leg etc." type="text" value={nameField} onInput= {e => setName(e.target.value)}/>
+          <input className="form-control" id="inputDescriber" placeholder="Arm, leg etc." type="text" value={label} onInput= {e => setLabel(e.target.value)} required/>
         </div>
         <div className="buttonDiv">
           <button type="button" className="btn btn-primary" onClick={clear}>Clear</button>
         </div>
         <div className="buttonDiv">
-          <button type="sumbit" className="btn btn-primary" onClick={ () => { updateImage('image-00000_CT.png') } }>Next</button>
+          <button disabled={isDisabled} type="submit" className="btn btn-primary" onClick={ () => { nextBtn() } }>Next</button>
         </div>
+      </form>
     </div>
   );
 }

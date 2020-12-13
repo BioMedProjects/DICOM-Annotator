@@ -43,7 +43,12 @@ def get_image(request, file):
     with open(f"media/converted_to_png/{png_file_name}", 'wb') as png_file:
         w = png.Writer(shape[1], shape[0], greyscale=True)
         w.write(png_file, image_2d_scaled)
-    return Response({"convertion successfull": file})
+        ## Create object that contains both dicom file name and png file name for use on the client side
+        files = {
+            "dicom" : file,
+            "png": png_file_name
+        }
+    return Response(files)
 
 
 @api_view(['PUT'])
